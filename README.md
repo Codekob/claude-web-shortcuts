@@ -1,6 +1,9 @@
 # Claude Web Shortcuts
 
-Chrome extension (Manifest V3) that adds configurable keyboard shortcuts to [claude.ai](https://claude.ai).
+Chrome extension (Manifest V3) that adds configurable keyboard shortcuts to [claude.ai](https://claude.ai),
+so you can switch model and effort without reaching for the mouse.
+
+> Unofficial project, not affiliated with or endorsed by Anthropic.
 
 | Shortcut | Command                                                   |
 | -------- | --------------------------------------------------------- |
@@ -12,9 +15,10 @@ Chrome extension (Manifest V3) that adds configurable keyboard shortcuts to [cla
 | —        | Set effort Low / Medium / High / Extra / Max (assignable) |
 
 Model switches also set the effort (default **Medium**; configurable, or "Keep current"). If the
-new model doesn't offer that level, its effort is left as is.
+new model doesn't offer that level, its effort is left as is. Every shortcut can be rebound or
+unbound in the options page, which warns about conflicting bindings.
 
-## Getting started
+## Install
 
 ```bash
 npm install
@@ -24,17 +28,6 @@ npm run build        # outputs dist/
 Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and pick `dist/`.
 Click the extension's toolbar icon to open the shortcut editor.
 
-For development, `npm run dev` builds with hot reload (load `dist/` the same way).
-
-| Script              | Purpose                      |
-| ------------------- | ---------------------------- |
-| `npm run build`     | Typecheck + production build |
-| `npm run dev`       | Watch build with HMR         |
-| `npm test`          | Unit tests (Vitest + jsdom)  |
-| `npm run lint`      | ESLint                       |
-| `npm run typecheck` | `tsc --noEmit`               |
-| `npm run format`    | Prettier                     |
-
 ## How it works
 
 - **Shortcuts** are caught by a capture-phase `keydown` listener in the content script, so they work
@@ -42,15 +35,82 @@ For development, `npm run dev` builds with hot reload (load `dist/` the same way
   `Alt+Digit1`), so they behave the same on every keyboard layout and on macOS (where ⌥ changes the
   typed character).
 - **Model switching** drives claude.ai's own model picker, so the page state stays consistent.
-  While a command runs, the picker's popups are made invisible with injected CSS; the
-  command opens the picker, clicks the item, closes it, waits for it to unmount, and puts focus
-  back in the composer. A small toast confirms the result (e.g. "Opus 5.5 · Medium").
+  While a command runs, the picker's popups are made invisible with injected CSS; the command
+  opens the picker, clicks the item, closes it and puts focus back in the composer. Popups finish
+  unmounting in the background while still hidden. A small toast confirms the result
+  (e.g. "Opus 5.5 · Medium").
+- **Fast paths** skip the picker entirely when its trigger label already shows the target model or
+  effort.
 - **Latest model** = highest version among the picker's items of that family (from `data-model-id`),
   so new releases are picked up automatically.
 - Commands run through a serial queue, so holding or hammering a shortcut never interleaves runs.
 - Settings live in `chrome.storage.sync` and open claude.ai tabs pick up changes without reloading.
 
-## Project layout
+## Design decisions
+
+**Drive the real UI instead of calling an API.** claude.ai has no public API for the chat page's
+model selection, and changing it behind the page's back would leave the UI showing the wrong model.
+Clicking through the picker keeps claude.ai the source of truth. The cost is depending on its
+markup, so that dependency is contained (next point) and tested against changes (see
+[Testing](#testing)).
+
+**One adapter owns all claude.ai knowledge.** `src/content/claude/` is the only code that knows the
+page's markup, and every selector or label assumption lives in `selectors.ts`. Command handlers talk
+to the adapter (`withModelMenu`, `ModelMenu`, …), never to the DOM. When claude.ai ships a redesign,
+the fix is in one place.
+
+**Prefer stable attributes over visible text.** Models are identified by `data-model-id` and effort
+levels by `data-effort-id`, not by their labels, so renames and new releases keep working. Where no
+stable attribute exists yet, the gap is documented as an expected-failure test.
+
+**Invisible automation.** A ref-counted `data-cws-busy` attribute on `<html>` hides the picker's
+popups with injected CSS while a command runs, so there is no flicker. Because holds are counted, a
+popup still animating out from one command stays hidden while the next command already runs, and
+the queue never has to wait for unmount animations.
+
+**Batch repeated presses instead of queueing them.** Commands must not overlap because they share
+one picker, but queueing every keypress would mean hammering `Alt+0` keeps switching models for
+seconds after you let go. Consecutive identical presses that arrive during a run collapse into one
+run with a count, and step-wise commands advance by that count.
+
+**Settings that can't break.** `normalizeSettings` turns any stored value (old schema, partial or
+corrupt) into valid settings: unknown commands are dropped, new ones get defaults, and `null` means
+explicitly unbound. Schema changes bump `SETTINGS_VERSION`.
+
+**Type-checked command registry.** The handler registry is typed `Record<CommandId, Handler>`, so a
+command added to the catalog without a handler fails the build.
+
+## Testing
+
+```bash
+npm test
+```
+
+Tests run in Vitest with jsdom, at three levels:
+
+- **Unit tests** for chords, settings migration, the command queue and parsing.
+- **A contract test** that runs the adapter against a fixture trimmed from the real claude.ai page
+  (`tests/fixtures/model-menu.html`).
+- **Scenario tests** against a behavioural fake of claude.ai's picker (`tests/mock/claudePage.ts`)
+  that simulate claude.ai shipping changes: new or renamed models, new effort levels, changed id
+  schemes, asynchronous popups, a selection the page refuses. The contract test checks that the
+  fake still reads exactly like the real snapshot, so the scenarios stay realistic.
+
+## Development
+
+| Script              | Purpose                      |
+| ------------------- | ---------------------------- |
+| `npm run build`     | Typecheck + production build |
+| `npm run dev`       | Watch build with HMR         |
+| `npm test`          | Unit and scenario tests      |
+| `npm run lint`      | ESLint                       |
+| `npm run typecheck` | `tsc --noEmit`               |
+| `npm run format`    | Prettier                     |
+
+Built with TypeScript, Vite and [`@crxjs/vite-plugin`](https://github.com/crxjs/chrome-extension-tools);
+the options page uses Preact.
+
+### Project layout
 
 ```
 src/
@@ -68,7 +128,11 @@ src/
     ui/toast.ts           # shadow-DOM toast
   options/                # shortcut editor (Preact)
   background/             # toolbar icon → options page
-tests/                    # unit tests + fixture trimmed from the docs/claude_ai_*.html snapshots
+tests/
+  unit/                   # unit and contract tests
+  scenarios/              # behaviour under simulated claude.ai changes
+  mock/claudePage.ts      # behavioural fake of claude.ai's model picker
+  fixtures/               # markup trimmed from the real claude.ai page
 ```
 
 ### Adding a command
@@ -83,5 +147,15 @@ The editor lists the new command automatically.
 
 ### When claude.ai changes its markup
 
-Update `src/content/claude/selectors.ts` (and the fixture in `tests/fixtures/` if needed). Failures
-are logged to the page console with the prefix `[claude-web-shortcuts]`.
+Update `src/content/claude/selectors.ts`, and refresh `tests/fixtures/model-menu.html` from the live
+page if the picker's markup changed (keep it trimmed to the picker; no chat titles or account
+details). Failures are logged to the page console with the prefix `[claude-web-shortcuts]`.
+
+## Privacy
+
+The extension collects no data and makes no network requests. Its only permission is `storage`, used
+to sync your shortcut settings through your Chrome profile, and it runs only on `claude.ai`.
+
+## License
+
+[MIT](LICENSE)
