@@ -5,10 +5,11 @@ import {
   leafText,
   leafTexts,
   parseModelId,
+  parseModelName,
   parseTriggerLabel,
   type SelectorState,
 } from './parse';
-import { EFFORT_SUBMENU_LABEL, SELECTORS } from './selectors';
+import { EFFORT_SUBMENU_LABEL, MODEL_TRIGGER_LABEL_PREFIX, SELECTORS } from './selectors';
 
 export interface ModelOption {
   id: string;
@@ -33,12 +34,19 @@ const OPEN_TIMEOUT_MS = 1500;
 /** How long a click gets to open a popup before falling back to the keyboard. */
 const CLICK_OPEN_TIMEOUT_MS = 250;
 const CLOSE_TIMEOUT_MS = 300;
+/** How long the trigger label gets to reflect a selection before we report a failure. */
+const CONFIRM_TIMEOUT_MS = 500;
 
 /** Models seen the last time the picker was opened, for shortcuts that can skip opening it. */
 let lastSeenModels: ModelOption[] = [];
 
 export function knownModels(): readonly ModelOption[] {
   return lastSeenModels;
+}
+
+/** Forgets the models seen so far, as on a fresh page load (used by tests). */
+export function resetKnownModels(): void {
+  lastSeenModels = [];
 }
 
 export function findModelTrigger(): HTMLElement | null {
@@ -48,7 +56,11 @@ export function findModelTrigger(): HTMLElement | null {
 /** Current model and effort, read from the picker button without opening it. */
 export function readSelectorState(): SelectorState | null {
   const label = findModelTrigger()?.getAttribute('aria-label');
-  return label ? parseTriggerLabel(label) : null;
+  if (!label) return null;
+  return parseTriggerLabel(
+    label,
+    lastSeenModels.map((m) => m.name),
+  );
 }
 
 /** The popup a trigger controls (via aria-controls), if it is currently open. */
@@ -111,14 +123,7 @@ export class ModelMenu {
     );
     if (!item) throw new ClaudeUiError(`Model ${id} is not available`);
     if (item.getAttribute('aria-checked') === 'true') return;
-    press(item);
-    await waitFor(
-      () => !item.isConnected || item.getAttribute('aria-checked') === 'true' || !this.isOpen(),
-      {
-        timeout: OPEN_TIMEOUT_MS,
-        description: `selection of ${id}`,
-      },
-    );
+    await this.pressAndConfirm(item, leafText(item) || id);
   }
 
   /**
@@ -142,11 +147,7 @@ export class ModelMenu {
     const item = effortItems(submenu).find((el) => el.dataset.effortId === id);
     if (!item) throw new ClaudeUiError(`Effort "${id}" is not available for this model`);
     if (item.getAttribute('aria-checked') === 'true') return;
-    press(item);
-    await waitFor(
-      () => !item.isConnected || item.getAttribute('aria-checked') === 'true' || !this.isOpen(),
-      { timeout: OPEN_TIMEOUT_MS, description: `effort ${id}` },
-    );
+    await this.pressAndConfirm(item, leafText(item) || id);
   }
 
   /** Closes the picker and waits (briefly) until it reports itself closed. */
@@ -160,6 +161,29 @@ export class ModelMenu {
       timeout: CLOSE_TIMEOUT_MS,
       description: 'model menu to close',
     }).catch(() => undefined);
+  }
+
+  /**
+   * Clicks an unselected item and waits until claude.ai took the selection: the item turns
+   * checked, or the picker closes and the trigger label changes. A picker that closes without
+   * the label changing (e.g. an upgrade prompt intervened) is reported as a failure. Labels in
+   * an unknown format are not checked.
+   */
+  private async pressAndConfirm(item: HTMLElement, name: string): Promise<void> {
+    const labelBefore = this.trigger.getAttribute('aria-label');
+    const checked = () => item.isConnected && item.getAttribute('aria-checked') === 'true';
+    press(item);
+    await waitFor(() => checked() || !item.isConnected || !this.isOpen(), {
+      timeout: OPEN_TIMEOUT_MS,
+      description: `selection of ${name}`,
+    });
+    if (checked() || !labelBefore?.startsWith(MODEL_TRIGGER_LABEL_PREFIX)) return;
+    await waitFor(() => this.trigger.getAttribute('aria-label') !== labelBefore, {
+      timeout: CONFIRM_TIMEOUT_MS,
+      description: `selection of ${name}`,
+    }).catch(() => {
+      throw new ClaudeUiError(`claude.ai did not switch to ${name}`);
+    });
   }
 
   private effortRow(menu: HTMLElement): HTMLElement | undefined {
@@ -177,10 +201,11 @@ export class ModelMenu {
 
 function toModelOption(item: HTMLElement): ModelOption {
   const id = item.dataset.modelId ?? '';
-  const parsed = parseModelId(id);
+  const name = leafText(item);
+  const parsed = parseModelId(id) ?? parseModelName(name);
   return {
     id,
-    name: leafText(item),
+    name,
     family: parsed?.family ?? null,
     version: parsed?.version ?? [],
     selected: item.getAttribute('aria-checked') === 'true',

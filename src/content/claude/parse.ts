@@ -7,10 +7,30 @@ export interface SelectorState {
   effort: string | null;
 }
 
-/** Parses the picker's aria-label, e.g. "Model: Haiku 5.5 Medium". */
-export function parseTriggerLabel(label: string): SelectorState | null {
+/**
+ * Parses the picker's aria-label, e.g. "Model: Haiku 5.5 Medium". `knownNames` are model names
+ * seen in the picker; matching against them splits names of any shape ("Opus", "Opus 5.5
+ * Thinking"). Without a match, model names are assumed to end with their version number.
+ */
+export function parseTriggerLabel(
+  label: string,
+  knownNames: readonly string[] = [],
+): SelectorState | null {
   if (!label.startsWith(MODEL_TRIGGER_LABEL_PREFIX)) return null;
   const rest = label.slice(MODEL_TRIGGER_LABEL_PREFIX.length).trim();
+  const known = knownNames
+    .filter((name) => {
+      const head = rest.slice(0, name.length);
+      const next = rest.charAt(name.length);
+      return head.toLowerCase() === name.toLowerCase() && (next === '' || next === ' ');
+    })
+    .sort((a, b) => b.length - a.length)[0];
+  if (known) {
+    return {
+      modelName: rest.slice(0, known.length),
+      effort: rest.slice(known.length).trim() || null,
+    };
+  }
   // Model names end with their version number ("Opus 5.5"); anything after is the effort.
   const match = /^(.*?\d+(?:\.\d+)*)\s*(.*)$/.exec(rest);
   if (!match) return rest ? { modelName: rest, effort: null } : null;
@@ -27,11 +47,21 @@ export interface ParsedModelId {
 export function parseModelId(id: string): ParsedModelId | null {
   const match = MODEL_ID_PATTERN.exec(id);
   if (!match) return null;
-  const version = match[2]!
+  const version = (match[2] ?? '')
     .split('-')
     .filter((part) => /^\d{1,4}$/.test(part))
     .map(Number);
   return { family: match[1]!, version };
+}
+
+/**
+ * Family and version from a display name like "Opus 6" or "Sonnet 4.5", for ids that do not
+ * follow MODEL_ID_PATTERN.
+ */
+export function parseModelName(name: string): ParsedModelId | null {
+  const match = /^([a-z]+)\b\s*(\d+(?:\.\d+)*)?/i.exec(name.trim());
+  if (!match) return null;
+  return { family: match[1]!.toLowerCase(), version: match[2]?.split('.').map(Number) ?? [] };
 }
 
 /** Compares numeric version arrays: negative if a < b. */

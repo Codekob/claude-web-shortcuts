@@ -28,5 +28,5 @@ export const EFFORT_SUBMENU_LABEL = 'Effort';
 /** Prefix of the trigger's aria-label. */
 export const MODEL_TRIGGER_LABEL_PREFIX = 'Model:';
 
-/** Model id format: claude-<family>-<version parts>[-<date>]. */
-export const MODEL_ID_PATTERN = /^claude-([a-z]+)-(.+)$/;
+/** Model id format: claude-<family>[-<version parts>][-<date>]. */
+export const MODEL_ID_PATTERN = /^claude-([a-z]+)(?:-(.+))?$/;
