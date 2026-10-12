@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks';
+import logoUrl from '../../branding/icon.svg';
 import type { CommandId } from '@/shared/commands';
 import { GeneralSettings } from './components/GeneralSettings';
 import { KeybindingsTable } from './components/KeybindingsTable';
@@ -15,8 +16,13 @@ export function App() {
   return (
     <main class="page">
       <header class="page-header">
-        <h1>Claude Web Shortcuts</h1>
-        <p class="muted">Keyboard shortcuts for claude.ai. Changes apply instantly to open tabs.</p>
+        <img class="logo" src={logoUrl} alt="" width={48} height={48} />
+        <div>
+          <h1>Claude Web Shortcuts</h1>
+          <p class="muted">
+            Keyboard shortcuts for claude.ai. Changes apply instantly to open tabs.
+          </p>
+        </div>
       </header>
 
       <GeneralSettings settings={settings} onChange={update} />
