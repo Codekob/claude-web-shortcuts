@@ -6,6 +6,12 @@ export default defineManifest({
   name: 'Claude Web Shortcuts',
   description: pkg.description,
   version: pkg.version,
+  icons: {
+    16: 'icons/icon-16.png',
+    32: 'icons/icon-32.png',
+    48: 'icons/icon-48.png',
+    128: 'icons/icon-128.png',
+  },
   permissions: ['storage'],
   background: {
     service_worker: 'src/background/index.ts',
@@ -13,6 +19,10 @@ export default defineManifest({
   },
   action: {
     default_title: 'Claude Web Shortcuts — edit shortcuts',
+    default_icon: {
+      16: 'icons/icon-16.png',
+      32: 'icons/icon-32.png',
+    },
   },
   options_ui: {
     page: 'src/options/index.html',
