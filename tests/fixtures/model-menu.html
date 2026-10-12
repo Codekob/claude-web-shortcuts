@@ -1,4 +1,7 @@
-<!-- Trimmed from docs/claude_ai_dom.html (classes/styles/icons removed), picker in OPEN state. -->
+<!--
+  Trimmed from docs/claude_ai_dom.html and docs/claude_ai_effort_selector_dom.html
+  (classes/styles/icons removed), with the picker and its Effort submenu OPEN.
+-->
 <div data-testid="chat-input" contenteditable="true"></div>
 <button
   type="button"
@@ -54,12 +57,75 @@
               </div>
             </div>
             <div role="separator"></div>
-            <div role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            <div
+              role="menuitem"
+              aria-haspopup="menu"
+              aria-expanded="true"
+              aria-controls="_r_effort_"
+              id="base-ui-_r_effort_row_"
+            >
               <span>Effort</span><span><span>Medium</span></span>
             </div>
             <div role="separator"></div>
             <div role="menuitem" aria-haspopup="menu" aria-expanded="false">
               <span>More models</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div data-base-ui-portal="">
+    <div data-cds-portal="">
+      <div data-open="" data-nested="" role="presentation">
+        <div
+          id="_r_effort_"
+          role="menu"
+          data-nested=""
+          aria-labelledby="base-ui-_r_effort_row_"
+          data-cds="Menu"
+        >
+          <div data-cds-sheet-scroll="">
+            <div role="presentation">
+              Higher effort means more thorough responses, but takes longer and uses your limits
+              faster.
+            </div>
+            <div role="group">
+              <div role="menuitemradio" data-effort-id="low" aria-checked="false">
+                <span
+                  ><span><span>Low</span></span></span
+                ><span><span></span></span>
+              </div>
+              <div role="menuitemradio" data-effort-id="medium" aria-checked="true">
+                <span
+                  ><span
+                    ><span>Medium</span><span data-cds="Badge"><span>Recommended</span></span></span
+                  ></span
+                ><span
+                  ><span><span data-cds="Icon" aria-hidden="true"></span></span
+                ></span>
+              </div>
+              <div role="menuitemradio" data-effort-id="high" aria-checked="false">
+                <span
+                  ><span><span>High</span></span></span
+                ><span><span></span></span>
+              </div>
+              <div role="menuitemradio" data-effort-id="xhigh" aria-checked="false">
+                <span
+                  ><span><span>Extra</span></span></span
+                ><span><span></span></span>
+              </div>
+              <div role="menuitemradio" data-effort-id="max" aria-checked="false">
+                <span
+                  ><span
+                    ><span>Max</span
+                    ><span data-cds="Badge"
+                      ><span data-cds="Icon" aria-hidden="true"></span
+                      ><span><span>5× or more usage</span></span></span
+                    ></span
+                  ></span
+                ><span><span></span></span>
+              </div>
             </div>
           </div>
         </div>

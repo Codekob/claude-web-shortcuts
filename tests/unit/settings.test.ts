@@ -10,7 +10,7 @@ describe('defaultSettings', () => {
     expect(keybindings['model.switchToHaiku']).toBe('Alt+Digit3');
     expect(keybindings['model.cycle']).toBe('Alt+Digit0');
     expect(keybindings['effort.cycle']).toBe('Alt+Digit9');
-    expect(effortOnSwitch).toBe('Medium');
+    expect(effortOnSwitch).toBe('medium');
   });
 
   it('has a keybinding entry for every command', () => {
@@ -43,6 +43,16 @@ describe('normalizeSettings', () => {
     expect('removed.command' in settings.keybindings).toBe(false);
     expect(settings.effortOnSwitch).toBe('keep');
     expect(settings.showToast).toBe(false);
+  });
+});
+
+describe('normalizeSettings effort', () => {
+  it('migrates effort labels stored before ids were used', () => {
+    expect(normalizeSettings({ effortOnSwitch: 'High' }).effortOnSwitch).toBe('high');
+  });
+
+  it('falls back to the default for unknown levels', () => {
+    expect(normalizeSettings({ effortOnSwitch: 'ultra' }).effortOnSwitch).toBe('medium');
   });
 });
 

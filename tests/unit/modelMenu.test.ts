@@ -31,6 +31,33 @@ describe('ModelMenu against the claude.ai snapshot', () => {
     await new ModelMenu(trigger()).selectModel('claude-opus-5-5');
     expect(item.getAttribute('aria-checked')).toBe('true');
   });
+
+  it('lists effort levels by id, ignoring badges', async () => {
+    const efforts = await new ModelMenu(trigger()).listEfforts();
+    expect(efforts).toEqual([
+      { id: 'low', label: 'Low', selected: false },
+      { id: 'medium', label: 'Medium', selected: true },
+      { id: 'high', label: 'High', selected: false },
+      { id: 'xhigh', label: 'Extra', selected: false },
+      { id: 'max', label: 'Max', selected: false },
+    ]);
+  });
+
+  it('selects an effort level by id', async () => {
+    const item = document.querySelector<HTMLElement>('[data-effort-id="xhigh"]')!;
+    item.addEventListener('click', () => item.setAttribute('aria-checked', 'true'));
+    await new ModelMenu(trigger()).selectEffort('xhigh');
+    expect(item.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('rejects unknown effort levels', async () => {
+    await expect(new ModelMenu(trigger()).selectEffort('ultra')).rejects.toThrow(/not available/);
+  });
+
+  it('reports no efforts when the model has no Effort row', async () => {
+    document.querySelector('[aria-controls="_r_effort_"]')!.remove();
+    expect(await new ModelMenu(trigger()).listEfforts()).toEqual([]);
+  });
 });
 
 describe('latestOfFamily', () => {

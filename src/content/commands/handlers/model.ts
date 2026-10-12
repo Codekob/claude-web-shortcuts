@@ -3,10 +3,15 @@ import type { CommandContext, CommandHandler } from '../types';
 import { CommandError } from '../types';
 import { notifySelectorState } from './feedback';
 
-/** Applies the user's "effort when switching model" preference. */
+/**
+ * Applies the user's "effort when switching model" preference. Skipped when the new model does
+ * not offer that level, so the switch itself still succeeds.
+ */
 async function applyEffortPreference(menu: ModelMenu, { settings }: CommandContext): Promise<void> {
-  if (settings.effortOnSwitch === 'keep') return;
-  await menu.selectEffort(settings.effortOnSwitch);
+  const target = settings.effortOnSwitch;
+  if (target === 'keep') return;
+  const efforts = await menu.listEfforts();
+  if (efforts.some((e) => e.id === target)) await menu.selectEffort(target);
 }
 
 async function switchTo(

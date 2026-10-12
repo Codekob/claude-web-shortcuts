@@ -2,16 +2,17 @@
 
 Chrome extension (Manifest V3) that adds configurable keyboard shortcuts to [claude.ai](https://claude.ai).
 
-| Shortcut | Command                                     |
-| -------- | ------------------------------------------- |
-| `Alt+1`  | Switch to latest Opus                       |
-| `Alt+2`  | Switch to latest Sonnet                     |
-| `Alt+3`  | Switch to latest Haiku                      |
-| `Alt+0`  | Cycle model                                 |
-| `Alt+9`  | Cycle effort                                |
-| —        | Set effort Low / Medium / High (assignable) |
+| Shortcut | Command                                                   |
+| -------- | --------------------------------------------------------- |
+| `Alt+1`  | Switch to latest Opus                                     |
+| `Alt+2`  | Switch to latest Sonnet                                   |
+| `Alt+3`  | Switch to latest Haiku                                    |
+| `Alt+0`  | Cycle model                                               |
+| `Alt+9`  | Cycle effort (Low → Medium → High → Extra; never Max)     |
+| —        | Set effort Low / Medium / High / Extra / Max (assignable) |
 
-Model switches also set the effort (default **Medium**; configurable, or "Keep current").
+Model switches also set the effort (default **Medium**; configurable, or "Keep current"). If the
+new model doesn't offer that level, its effort is left as is.
 
 ## Getting started
 
@@ -67,7 +68,7 @@ src/
     ui/toast.ts           # shadow-DOM toast
   options/                # shortcut editor (Preact)
   background/             # toolbar icon → options page
-tests/                    # unit tests + fixture trimmed from docs/claude_ai_dom.html
+tests/                    # unit tests + fixture trimmed from the docs/claude_ai_*.html snapshots
 ```
 
 ### Adding a command

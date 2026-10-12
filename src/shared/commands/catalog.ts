@@ -40,7 +40,7 @@ export const COMMANDS = [
     id: 'effort.cycle',
     title: 'Cycle effort',
     category: 'Effort',
-    description: 'Selects the next effort level.',
+    description: 'Selects the next effort level (skips Max, which uses limits much faster).',
     defaultKey: 'Alt+Digit9',
   },
   {
@@ -62,6 +62,20 @@ export const COMMANDS = [
     title: 'Set effort: High',
     category: 'Effort',
     description: 'Sets the effort level to High.',
+    defaultKey: null,
+  },
+  {
+    id: 'effort.setExtra',
+    title: 'Set effort: Extra',
+    category: 'Effort',
+    description: 'Sets the effort level to Extra.',
+    defaultKey: null,
+  },
+  {
+    id: 'effort.setMax',
+    title: 'Set effort: Max',
+    category: 'Effort',
+    description: 'Sets the effort level to Max (uses limits 5× or more faster).',
     defaultKey: null,
   },
 ] as const satisfies readonly CommandDefinition[];

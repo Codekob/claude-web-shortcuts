@@ -1,8 +1,17 @@
 import type { CommandId } from '../commands';
 
-/** Effort levels as labelled in claude.ai's Effort submenu. */
-export const EFFORT_LEVELS = ['Low', 'Medium', 'High'] as const;
-export type EffortLevel = (typeof EFFORT_LEVELS)[number];
+/**
+ * Effort levels in claude.ai's Effort submenu, in menu order. `id` is the item's
+ * `data-effort-id`; `label` is its visible name. Not every model offers every level.
+ */
+export const EFFORT_LEVELS = [
+  { id: 'low', label: 'Low' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'high', label: 'High' },
+  { id: 'xhigh', label: 'Extra' },
+  { id: 'max', label: 'Max' },
+] as const;
+export type EffortLevel = (typeof EFFORT_LEVELS)[number]['id'];
 
 /** What to do with effort when a "switch model" command runs. */
 export type EffortOnSwitch = 'keep' | EffortLevel;

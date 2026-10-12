@@ -18,9 +18,9 @@ export function GeneralSettings({ settings, onChange }: Props) {
           }}
         >
           <option value="keep">Keep current</option>
-          {EFFORT_LEVELS.map((level) => (
-            <option key={level} value={level}>
-              {level}
+          {EFFORT_LEVELS.map(({ id, label }) => (
+            <option key={id} value={id}>
+              {label}
             </option>
           ))}
         </select>

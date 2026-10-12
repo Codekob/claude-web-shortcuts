@@ -10,7 +10,9 @@ export const COMMAND_HANDLERS: Record<CommandId, CommandHandler> = {
   'model.switchToHaiku': switchToFamily('haiku'),
   'model.cycle': cycleModel,
   'effort.cycle': cycleEffort,
-  'effort.setLow': setEffort('Low'),
-  'effort.setMedium': setEffort('Medium'),
-  'effort.setHigh': setEffort('High'),
+  'effort.setLow': setEffort('low'),
+  'effort.setMedium': setEffort('medium'),
+  'effort.setHigh': setEffort('high'),
+  'effort.setExtra': setEffort('xhigh'),
+  'effort.setMax': setEffort('max'),
 };

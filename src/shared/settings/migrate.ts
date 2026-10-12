@@ -20,7 +20,10 @@ export function normalizeSettings(raw: unknown): Settings {
     }
   }
 
-  if (isEffortOnSwitch(stored.effortOnSwitch)) settings.effortOnSwitch = stored.effortOnSwitch;
+  // Lower-casing also migrates the labels stored before levels were keyed by id ("Medium").
+  const effort =
+    typeof stored.effortOnSwitch === 'string' ? stored.effortOnSwitch.toLowerCase() : undefined;
+  if (isEffortOnSwitch(effort)) settings.effortOnSwitch = effort;
   if (typeof stored.showToast === 'boolean') settings.showToast = stored.showToast;
 
   settings.version = SETTINGS_VERSION;
@@ -28,5 +31,5 @@ export function normalizeSettings(raw: unknown): Settings {
 }
 
 function isEffortOnSwitch(value: unknown): value is EffortOnSwitch {
-  return value === 'keep' || (EFFORT_LEVELS as readonly unknown[]).includes(value);
+  return value === 'keep' || EFFORT_LEVELS.some((level) => level.id === value);
 }

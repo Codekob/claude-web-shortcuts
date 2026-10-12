@@ -18,6 +18,8 @@ export interface ModelOption {
 }
 
 export interface EffortOption {
+  /** claude.ai's `data-effort-id`, e.g. "medium". */
+  id: string;
   label: string;
   selected: boolean;
 }
@@ -105,23 +107,22 @@ export class ModelMenu {
     );
   }
 
+  /** Effort levels the current model offers; empty if it has no effort setting. */
   async listEfforts(): Promise<EffortOption[]> {
     const submenu = await this.openEffortSubmenu();
-    return effortItems(submenu).map((item) => ({
-      label: leafText(item),
-      selected: item.getAttribute('aria-checked') === 'true',
-    }));
+    return submenu ? effortItems(submenu).map(toEffortOption) : [];
   }
 
-  async selectEffort(label: string): Promise<void> {
+  async selectEffort(id: string): Promise<void> {
     const submenu = await this.openEffortSubmenu();
-    const item = effortItems(submenu).find((el) => sameLabel(leafText(el), label));
-    if (!item) throw new ClaudeUiError(`Effort "${label}" is not available for this model`);
+    if (!submenu) throw new ClaudeUiError('This model has no effort setting');
+    const item = effortItems(submenu).find((el) => el.dataset.effortId === id);
+    if (!item) throw new ClaudeUiError(`Effort "${id}" is not available for this model`);
     if (item.getAttribute('aria-checked') === 'true') return;
     press(item);
     await waitFor(
       () => !item.isConnected || item.getAttribute('aria-checked') === 'true' || !this.isOpen(),
-      { timeout: OPEN_TIMEOUT_MS, description: `effort ${label}` },
+      { timeout: OPEN_TIMEOUT_MS, description: `effort ${id}` },
     );
   }
 
@@ -134,13 +135,13 @@ export class ModelMenu {
     if (this.isOpen()) pressKey(document.activeElement ?? menu, 'Escape');
   }
 
-  private async openEffortSubmenu(): Promise<HTMLElement> {
+  /** Opens the Effort submenu, or returns null if the current model has none. */
+  private async openEffortSubmenu(): Promise<HTMLElement | null> {
     const menu = await this.open();
     const row = [...menu.querySelectorAll<HTMLElement>(SELECTORS.submenuTrigger)].find((el) =>
       sameLabel(leafText(el), EFFORT_SUBMENU_LABEL),
     );
-    if (!row) throw new ClaudeUiError('This model has no effort setting');
-    return openMenuFrom(row, 'effort submenu');
+    return row ? openMenuFrom(row, 'effort submenu') : null;
   }
 }
 
@@ -156,10 +157,17 @@ function toModelOption(item: HTMLElement): ModelOption {
   };
 }
 
+function toEffortOption(item: HTMLElement): EffortOption {
+  return {
+    id: item.dataset.effortId ?? '',
+    // The first leaf is the level name; badges such as "Recommended" come after it.
+    label: leafText(item),
+    selected: item.getAttribute('aria-checked') === 'true',
+  };
+}
+
 function effortItems(submenu: HTMLElement): HTMLElement[] {
-  return [...submenu.querySelectorAll<HTMLElement>(SELECTORS.submenuItem)].filter(
-    (el) => !el.matches(SELECTORS.submenuTrigger) && leafText(el) !== '',
-  );
+  return [...submenu.querySelectorAll<HTMLElement>(SELECTORS.effortItem)];
 }
 
 function sameLabel(a: string, b: string): boolean {

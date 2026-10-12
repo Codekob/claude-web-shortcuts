@@ -9,7 +9,7 @@ export function defaultSettings(): Settings {
   return {
     version: SETTINGS_VERSION,
     keybindings: defaultKeybindings(),
-    effortOnSwitch: 'Medium',
+    effortOnSwitch: 'medium',
     showToast: true,
   };
 }
