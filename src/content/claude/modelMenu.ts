@@ -44,6 +44,11 @@ export function knownModels(): readonly ModelOption[] {
   return lastSeenModels;
 }
 
+/** Forgets the models seen so far, as on a fresh page load (used by tests). */
+export function resetKnownModels(): void {
+  lastSeenModels = [];
+}
+
 export function findModelTrigger(): HTMLElement | null {
   return document.querySelector<HTMLElement>(SELECTORS.modelTrigger);
 }
