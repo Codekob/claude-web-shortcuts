@@ -14,7 +14,7 @@ function applySettings(next: Settings): void {
 const dispatch = createDispatcher({ getSettings: () => settings, showToast });
 installShortcutListener(
   () => keymap,
-  (id) => void dispatch(id),
+  (id) => dispatch(id),
 );
 
 subscribeSettings(applySettings);

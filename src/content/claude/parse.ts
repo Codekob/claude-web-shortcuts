@@ -43,13 +43,19 @@ export function compareVersions(a: readonly number[], b: readonly number[]): num
   return 0;
 }
 
-/** Text of the first descendant that has text but no child elements (the row's title). */
-export function leafText(element: Element): string {
+/** Texts of all descendants that have text but no child elements, in document order. */
+export function leafTexts(element: Element): string[] {
+  const texts: string[] = [];
   const walker = document.createTreeWalker(element, NodeFilter.SHOW_ELEMENT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const el = node as Element;
     const text = el.textContent?.trim();
-    if (text && el.childElementCount === 0) return text;
+    if (text && el.childElementCount === 0) texts.push(text);
   }
-  return element.textContent?.trim() ?? '';
+  return texts;
+}
+
+/** Text of the first leaf with text (a row's title), or the element's whole text. */
+export function leafText(element: Element): string {
+  return leafTexts(element)[0] ?? element.textContent?.trim() ?? '';
 }

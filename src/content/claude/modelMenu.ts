@@ -3,6 +3,7 @@ import { press, pressKey } from '../dom/simulate';
 import {
   compareVersions,
   leafText,
+  leafTexts,
   parseModelId,
   parseTriggerLabel,
   type SelectorState,
@@ -29,6 +30,16 @@ export class ClaudeUiError extends Error {
 }
 
 const OPEN_TIMEOUT_MS = 1500;
+/** How long a click gets to open a popup before falling back to the keyboard. */
+const CLICK_OPEN_TIMEOUT_MS = 250;
+const CLOSE_TIMEOUT_MS = 300;
+
+/** Models seen the last time the picker was opened, for shortcuts that can skip opening it. */
+let lastSeenModels: ModelOption[] = [];
+
+export function knownModels(): readonly ModelOption[] {
+  return lastSeenModels;
+}
 
 export function findModelTrigger(): HTMLElement | null {
   return document.querySelector<HTMLElement>(SELECTORS.modelTrigger);
@@ -56,7 +67,7 @@ async function openMenuFrom(trigger: HTMLElement, what: string): Promise<HTMLEle
   press(trigger);
   try {
     return await waitFor(() => controlledMenu(trigger), {
-      timeout: OPEN_TIMEOUT_MS / 2,
+      timeout: CLICK_OPEN_TIMEOUT_MS,
       description: what,
     });
   } catch {
@@ -64,7 +75,7 @@ async function openMenuFrom(trigger: HTMLElement, what: string): Promise<HTMLEle
     trigger.focus();
     pressKey(trigger, trigger.getAttribute('role') === 'menuitem' ? 'ArrowRight' : 'Enter');
     return waitFor(() => controlledMenu(trigger), {
-      timeout: OPEN_TIMEOUT_MS / 2,
+      timeout: OPEN_TIMEOUT_MS - CLICK_OPEN_TIMEOUT_MS,
       description: what,
     });
   }
@@ -87,7 +98,10 @@ export class ModelMenu {
 
   async listModels(): Promise<ModelOption[]> {
     const menu = await this.open();
-    return [...menu.querySelectorAll<HTMLElement>(SELECTORS.modelItem)].map(toModelOption);
+    lastSeenModels = [...menu.querySelectorAll<HTMLElement>(SELECTORS.modelItem)].map(
+      toModelOption,
+    );
+    return lastSeenModels;
   }
 
   async selectModel(id: string): Promise<void> {
@@ -105,6 +119,15 @@ export class ModelMenu {
         description: `selection of ${id}`,
       },
     );
+  }
+
+  /**
+   * Current effort as shown on the picker's Effort row (e.g. "Medium"), without opening the
+   * submenu; null if the model has no effort setting.
+   */
+  async currentEffortLabel(): Promise<string | null> {
+    const row = this.effortRow(await this.open());
+    return row ? (leafTexts(row)[1] ?? null) : null;
   }
 
   /** Effort levels the current model offers; empty if it has no effort setting. */
@@ -126,21 +149,28 @@ export class ModelMenu {
     );
   }
 
-  close(): void {
+  /** Closes the picker and waits (briefly) until it reports itself closed. */
+  async close(): Promise<void> {
     const menu = controlledMenu(this.trigger);
     if (!menu) return;
-    const target = document.activeElement ?? menu;
-    pressKey(target, 'Escape');
+    pressKey(document.activeElement ?? menu, 'Escape');
     // Escape may only close a nested submenu; press again if the picker is still open.
     if (this.isOpen()) pressKey(document.activeElement ?? menu, 'Escape');
+    await waitFor(() => !this.isOpen(), {
+      timeout: CLOSE_TIMEOUT_MS,
+      description: 'model menu to close',
+    }).catch(() => undefined);
+  }
+
+  private effortRow(menu: HTMLElement): HTMLElement | undefined {
+    return [...menu.querySelectorAll<HTMLElement>(SELECTORS.submenuTrigger)].find((el) =>
+      sameLabel(leafText(el), EFFORT_SUBMENU_LABEL),
+    );
   }
 
   /** Opens the Effort submenu, or returns null if the current model has none. */
   private async openEffortSubmenu(): Promise<HTMLElement | null> {
-    const menu = await this.open();
-    const row = [...menu.querySelectorAll<HTMLElement>(SELECTORS.submenuTrigger)].find((el) =>
-      sameLabel(leafText(el), EFFORT_SUBMENU_LABEL),
-    );
+    const row = this.effortRow(await this.open());
     return row ? openMenuFrom(row, 'effort submenu') : null;
   }
 }
@@ -170,7 +200,7 @@ function effortItems(submenu: HTMLElement): HTMLElement[] {
   return [...submenu.querySelectorAll<HTMLElement>(SELECTORS.effortItem)];
 }
 
-function sameLabel(a: string, b: string): boolean {
+export function sameLabel(a: string, b: string): boolean {
   return a.localeCompare(b, undefined, { sensitivity: 'base' }) === 0;
 }
 

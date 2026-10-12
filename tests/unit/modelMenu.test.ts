@@ -32,6 +32,10 @@ describe('ModelMenu against the claude.ai snapshot', () => {
     expect(item.getAttribute('aria-checked')).toBe('true');
   });
 
+  it('reads the current effort from the Effort row without the submenu', async () => {
+    expect(await new ModelMenu(trigger()).currentEffortLabel()).toBe('Medium');
+  });
+
   it('lists effort levels by id, ignoring badges', async () => {
     const efforts = await new ModelMenu(trigger()).listEfforts();
     expect(efforts).toEqual([

@@ -1,11 +1,14 @@
 import { waitForRemoval } from '../dom/waitFor';
 import { ClaudeUiError, findModelTrigger, ModelMenu } from './modelMenu';
 import { SELECTORS } from './selectors';
-import { beginStealth, endStealth } from './stealth';
+import { beginStealth } from './stealth';
 
 /**
  * Runs `task` against the model picker while it is invisible, then closes the picker and puts
  * focus back where the user was (usually the composer, caret intact).
+ *
+ * Resolves as soon as the picker reports itself closed. Its popups may still be animating out;
+ * they stay hidden until unmounted in the background, so the next command need not wait.
  */
 export async function withModelMenu<T>(task: (menu: ModelMenu) => Promise<T>): Promise<T> {
   const trigger = findModelTrigger();
@@ -13,17 +16,24 @@ export async function withModelMenu<T>(task: (menu: ModelMenu) => Promise<T>): P
 
   const previousFocus = document.activeElement as HTMLElement | null;
   const menu = new ModelMenu(trigger);
-  beginStealth();
+  const release = beginStealth();
   try {
     return await task(menu);
   } finally {
     const openPopups = [...document.querySelectorAll(`${SELECTORS.portal} ${SELECTORS.menu}`)];
-    menu.close();
-    // Keep popups hidden until their close animation has finished and they are unmounted.
-    await Promise.all(openPopups.map((el) => waitForRemoval(el)));
-    endStealth();
+    await menu.close();
     restoreFocus(previousFocus);
+    void Promise.all(openPopups.map((el) => waitForRemoval(el))).then(() => {
+      release();
+      // The picker may hand focus back to its trigger as it unmounts; undo that.
+      if (focusWasTakenBy(trigger)) restoreFocus(previousFocus);
+    });
   }
+}
+
+function focusWasTakenBy(trigger: HTMLElement): boolean {
+  const active = document.activeElement;
+  return !active || active === document.body || active === trigger;
 }
 
 function restoreFocus(previous: HTMLElement | null): void {

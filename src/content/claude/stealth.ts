@@ -28,11 +28,20 @@ function ensureStyle(): void {
   (document.head ?? document.documentElement).append(style);
 }
 
-export function beginStealth(): void {
-  ensureStyle();
-  document.documentElement.setAttribute(BUSY_ATTRIBUTE, '');
-}
+let holders = 0;
 
-export function endStealth(): void {
-  document.documentElement.removeAttribute(BUSY_ATTRIBUTE);
+/**
+ * Hides menu popups until the returned release function is called. Holds are counted, so a
+ * popup still closing from one command stays hidden while the next command already runs.
+ */
+export function beginStealth(): () => void {
+  ensureStyle();
+  holders++;
+  document.documentElement.setAttribute(BUSY_ATTRIBUTE, '');
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    if (--holders === 0) document.documentElement.removeAttribute(BUSY_ATTRIBUTE);
+  };
 }
