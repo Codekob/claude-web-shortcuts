@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Custom keyboard shortcuts for claude.ai (Chrome MV3 extension)",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
