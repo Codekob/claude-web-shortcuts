@@ -36,6 +36,7 @@ describe('normalizeSettings', () => {
       },
       effortOnSwitch: 'keep',
       showToast: false,
+      debugMode: true,
     });
     expect(settings.keybindings['model.cycle']).toBe('Ctrl+KeyM');
     expect(settings.keybindings['model.switchToOpus']).toBeNull();
@@ -43,6 +44,7 @@ describe('normalizeSettings', () => {
     expect('removed.command' in settings.keybindings).toBe(false);
     expect(settings.effortOnSwitch).toBe('keep');
     expect(settings.showToast).toBe(false);
+    expect(settings.debugMode).toBe(true);
   });
 });
 

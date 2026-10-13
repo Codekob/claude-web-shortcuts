@@ -64,7 +64,7 @@ export function readSelectorState(): SelectorState | null {
 }
 
 /** The popup a trigger controls (via aria-controls), if it is currently open. */
-function controlledMenu(trigger: Element): HTMLElement | null {
+export function controlledMenu(trigger: Element): HTMLElement | null {
   if (trigger.getAttribute('aria-expanded') !== 'true') return null;
   const id = trigger.getAttribute('aria-controls');
   const menu = id ? document.getElementById(id) : null;
@@ -131,7 +131,7 @@ export class ModelMenu {
    * submenu; null if the model has no effort setting.
    */
   async currentEffortLabel(): Promise<string | null> {
-    const row = this.effortRow(await this.open());
+    const row = findEffortRow(await this.open());
     return row ? (leafTexts(row)[1] ?? null) : null;
   }
 
@@ -186,15 +186,9 @@ export class ModelMenu {
     });
   }
 
-  private effortRow(menu: HTMLElement): HTMLElement | undefined {
-    return [...menu.querySelectorAll<HTMLElement>(SELECTORS.submenuTrigger)].find((el) =>
-      sameLabel(leafText(el), EFFORT_SUBMENU_LABEL),
-    );
-  }
-
   /** Opens the Effort submenu, or returns null if the current model has none. */
   private async openEffortSubmenu(): Promise<HTMLElement | null> {
-    const row = this.effortRow(await this.open());
+    const row = findEffortRow(await this.open());
     return row ? openMenuFrom(row, 'effort submenu') : null;
   }
 }
@@ -221,7 +215,14 @@ function toEffortOption(item: HTMLElement): EffortOption {
   };
 }
 
-function effortItems(submenu: HTMLElement): HTMLElement[] {
+/** The picker row that opens the Effort submenu, if the current model has one. */
+export function findEffortRow(menu: HTMLElement): HTMLElement | undefined {
+  return [...menu.querySelectorAll<HTMLElement>(SELECTORS.submenuTrigger)].find((el) =>
+    sameLabel(leafText(el), EFFORT_SUBMENU_LABEL),
+  );
+}
+
+export function effortItems(submenu: HTMLElement): HTMLElement[] {
   return [...submenu.querySelectorAll<HTMLElement>(SELECTORS.effortItem)];
 }
 

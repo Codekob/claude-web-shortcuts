@@ -125,7 +125,7 @@ src/
     claude/               # claude.ai DOM adapter, the only code that knows claude.ai's markup
       selectors.ts        # every selector/label assumption, in one place
     dom/                  # generic waitFor / synthetic input helpers
-    ui/toast.ts           # shadow-DOM toast
+    ui/                   # shadow-DOM toast and warning banner
   options/                # shortcut editor (Preact)
   background/             # toolbar icon → options page
 tests/
@@ -147,9 +147,21 @@ The editor lists the new command automatically.
 
 ### When claude.ai changes its markup
 
-Update `src/content/claude/selectors.ts`, and refresh `tests/fixtures/model-menu.html` from the live
-page if the picker's markup changed (keep it trimmed to the picker; no chat titles or account
-details). Failures are logged to the page console with the prefix `[claude-web-shortcuts]`.
+With **Debug mode** turned on in the options page, the content script checks claude.ai against the
+assumptions in `selectors.ts` once a chat page has loaded, and again whenever you open the model
+picker or its Effort submenu yourself. If something no longer matches, it shows a dismissible
+warning on the page and logs the details to the console with the prefix `[claude-web-shortcuts]`.
+
+To update the extension after such a change:
+
+1. Bind **Copy model picker snapshot** (category Diagnostics) in the options page.
+2. On claude.ai, open the model picker and its Effort submenu, then press that shortcut. This copies
+   the picker's markup, in the shape of `tests/fixtures/model-menu.html` and with the self-check
+   result in a header comment. Classes, styles, icons, the draft and all text outside the picker are
+   removed, so no chat titles end up in it. The snapshot finds the open picker through standard ARIA
+   attributes, so it works even after our selectors stop matching.
+3. Replace `tests/fixtures/model-menu.html` with the snapshot (check it for personal data first),
+   run `npm test`, and update `selectors.ts` and `tests/mock/claudePage.ts` until the tests pass.
 
 ## Privacy
 

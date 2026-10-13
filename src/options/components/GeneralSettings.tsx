@@ -46,6 +46,25 @@ export function GeneralSettings({ settings, onChange }: Props) {
             }}
           />
         </label>
+        <label class="setting">
+          <span class="setting-text">
+            <span>Debug mode</span>
+            <span class="muted small">
+              Check whether claude.ai still looks the way the shortcuts expect, and show a warning
+              on the page if it changed.
+            </span>
+          </span>
+          <input
+            class="switch"
+            type="checkbox"
+            role="switch"
+            checked={settings.debugMode}
+            onChange={(e) => {
+              const debugMode = e.currentTarget.checked;
+              onChange((s) => ({ ...s, debugMode }));
+            }}
+          />
+        </label>
       </div>
     </section>
   );

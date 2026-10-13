@@ -25,6 +25,8 @@ export interface Settings {
   effortOnSwitch: EffortOnSwitch;
   /** Show a small confirmation toast on claude.ai after a command runs. */
   showToast: boolean;
+  /** Check claude.ai against the extension's markup assumptions and warn on mismatches. */
+  debugMode: boolean;
 }
 
-export const SETTINGS_VERSION = 1;
+export const SETTINGS_VERSION = 2;
