@@ -1,4 +1,5 @@
 import type { CommandId } from '@/shared/commands';
+import { copyPickerSnapshot } from './handlers/diagnostics';
 import { cycleEffort, setEffort } from './handlers/effort';
 import { cycleModel, switchToFamily } from './handlers/model';
 import type { CommandHandler } from './types';
@@ -15,4 +16,5 @@ export const COMMAND_HANDLERS: Record<CommandId, CommandHandler> = {
   'effort.setHigh': setEffort('high'),
   'effort.setExtra': setEffort('xhigh'),
   'effort.setMax': setEffort('max'),
+  'debug.copyPickerSnapshot': copyPickerSnapshot,
 };

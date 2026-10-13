@@ -30,6 +30,11 @@ function ensureStyle(): void {
 
 let holders = 0;
 
+/** Whether the extension is currently automating the picker (behind the scenes). */
+export function isStealthActive(): boolean {
+  return document.documentElement.hasAttribute(BUSY_ATTRIBUTE);
+}
+
 /**
  * Hides menu popups until the returned release function is called. Holds are counted, so a
  * popup still closing from one command stays hidden while the next command already runs.

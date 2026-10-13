@@ -25,6 +25,7 @@ export function normalizeSettings(raw: unknown): Settings {
     typeof stored.effortOnSwitch === 'string' ? stored.effortOnSwitch.toLowerCase() : undefined;
   if (isEffortOnSwitch(effort)) settings.effortOnSwitch = effort;
   if (typeof stored.showToast === 'boolean') settings.showToast = stored.showToast;
+  if (typeof stored.debugMode === 'boolean') settings.debugMode = stored.debugMode;
 
   settings.version = SETTINGS_VERSION;
   return settings;

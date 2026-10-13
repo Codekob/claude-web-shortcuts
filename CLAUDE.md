@@ -61,6 +61,13 @@ are dropped, new ones get catalog defaults, `null` means explicitly unbound. Bum
 `SETTINGS_VERSION` and extend `normalizeSettings` when the schema changes. Open claude.ai tabs pick
 up changes live via `subscribeSettings`.
 
+**Self-check (`claude/selfCheck.ts`):** `checkPicker` compares the page with `selectors.ts`. Only
+with the `debugMode` setting on, it runs once a composer appears and whenever the user opens the
+picker (skipped while stealth is active). Failures show `ui/banner.ts`. When adding a selector the handlers depend on, add a matching
+check. `claude/snapshot.ts` captures the picker for the fixture (command
+`debug.copyPickerSnapshot`); it locates menus via generic ARIA so it survives broken selectors, and
+must never keep text outside the picker.
+
 ## Tests and claude.ai snapshots
 
 DOM adapter tests run against `tests/fixtures/model-menu.html` (imported with `?raw`), trimmed

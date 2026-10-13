@@ -11,5 +11,6 @@ export function defaultSettings(): Settings {
     keybindings: defaultKeybindings(),
     effortOnSwitch: 'medium',
     showToast: true,
+    debugMode: false,
   };
 }

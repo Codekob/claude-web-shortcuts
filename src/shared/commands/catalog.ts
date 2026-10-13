@@ -78,6 +78,14 @@ export const COMMANDS = [
     description: 'Sets the effort level to Max (uses limits 5× or more faster).',
     defaultKey: null,
   },
+  {
+    id: 'debug.copyPickerSnapshot',
+    title: 'Copy model picker snapshot',
+    category: 'Diagnostics',
+    description:
+      'Copies the model picker markup (no chat content) for reporting a claude.ai change. Open the picker and its Effort submenu first.',
+    defaultKey: null,
+  },
 ] as const satisfies readonly CommandDefinition[];
 
 export type CommandId = (typeof COMMANDS)[number]['id'];
