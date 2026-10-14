@@ -5,6 +5,12 @@ import { beginStealth } from '@/content/claude/stealth';
 import fixture from '../fixtures/model-menu.html?raw';
 import { mountClaudePage, SNAPSHOT_MODELS } from '../mock/claudePage';
 
+/** A model id the self-check rejects, only visible once the picker is open. */
+const renamedIds = {
+  models: [{ id: 'opus-5-5', name: 'Opus 5.5' }],
+  selected: { model: 'opus-5-5', effort: 'medium' },
+};
+
 const $ = (selector: string) => document.querySelector<HTMLElement>(selector)!;
 
 describe('checkPicker against the claude.ai snapshot', () => {
@@ -50,8 +56,15 @@ describe('checkPicker against the claude.ai snapshot', () => {
     expect(checkPicker()).toEqual(['No models found in the model picker']);
   });
 
-  it('reports a renamed Effort row', () => {
-    $('[aria-controls="_r_effort_"] span').textContent = 'Thinking';
+  it('accepts a translated Effort row', () => {
+    $('[aria-controls="_r_effort_"] span').textContent = 'Aufwand';
+    expect(checkPicker()).toEqual([]);
+  });
+
+  it('reports an Effort row it cannot recognise', () => {
+    const row = $('[aria-controls="_r_effort_"]');
+    row.innerHTML = '<span>Thinking</span>';
+    row.setAttribute('aria-expanded', 'false');
     expect(checkPicker()).toEqual(['Effort row not found in the model picker']);
   });
 
@@ -117,18 +130,18 @@ describe('installSelfCheck', () => {
   });
 
   it('checks again when the user opens the picker', async () => {
-    const page = mountClaudePage({ effortRowLabel: 'Thinking' });
+    const page = mountClaudePage(renamedIds);
     install();
     await vi.advanceTimersByTimeAsync(2000);
     expect(reports).toEqual([]);
 
     page.trigger.click();
     await vi.advanceTimersByTimeAsync(2000);
-    expect(reports).toEqual([['Effort row not found in the model picker']]);
+    expect(reports).toEqual([[`Unrecognized model id: "opus-5-5"`]]);
   });
 
   it('ignores the picker while the extension automates it', async () => {
-    const page = mountClaudePage({ effortRowLabel: 'Thinking' });
+    const page = mountClaudePage(renamedIds);
     install();
     const release = beginStealth();
     page.trigger.click();

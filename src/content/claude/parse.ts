@@ -8,7 +8,8 @@ export interface SelectorState {
 }
 
 /**
- * Parses the picker's aria-label, e.g. "Model: Haiku 5.5 Medium". `knownNames` are model names
+ * Parses the picker's aria-label, e.g. "Model: Haiku 5.5 Medium" (the prefix is translated in
+ * other languages). `knownNames` are model names
  * seen in the picker; matching against them splits names of any shape ("Opus", "Opus 5.5
  * Thinking"). Without a match, model names are assumed to end with their version number.
  */
@@ -16,8 +17,9 @@ export function parseTriggerLabel(
   label: string,
   knownNames: readonly string[] = [],
 ): SelectorState | null {
-  if (!label.startsWith(MODEL_TRIGGER_LABEL_PREFIX)) return null;
-  const rest = label.slice(MODEL_TRIGGER_LABEL_PREFIX.length).trim();
+  const prefix = MODEL_TRIGGER_LABEL_PREFIX.exec(label);
+  if (!prefix) return null;
+  const rest = label.slice(prefix[0].length).trim();
   const known = knownNames
     .filter((name) => {
       const head = rest.slice(0, name.length);

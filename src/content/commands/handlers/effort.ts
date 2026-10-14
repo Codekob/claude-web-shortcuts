@@ -1,6 +1,6 @@
-import { EFFORT_LEVELS, type EffortLevel, type EffortOnSwitch } from '@/shared/settings';
+import type { EffortLevel, EffortOnSwitch } from '@/shared/settings';
 import type { ModelMenu } from '../../claude';
-import { readSelectorState, sameLabel, withModelMenu } from '../../claude';
+import { effortIdFromLabel, readSelectorState, withModelMenu } from '../../claude';
 import type { CommandContext, CommandHandler } from '../types';
 import { CommandError } from '../types';
 import { notifySelectorState } from './feedback';
@@ -8,8 +8,7 @@ import { notifySelectorState } from './feedback';
 /** Whether an effort shown by claude.ai (e.g. "Medium") satisfies `preference`. */
 export function effortSatisfied(shown: string | null, preference: EffortOnSwitch): boolean {
   if (preference === 'keep') return true;
-  const wanted = EFFORT_LEVELS.find((level) => level.id === preference)?.label;
-  return shown !== null && wanted !== undefined && sameLabel(shown, wanted);
+  return shown !== null && effortIdFromLabel(shown) === preference;
 }
 
 /** Levels cycling never lands on: Max uses limits 5× or more faster, so it must be chosen. */
