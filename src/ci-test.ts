@@ -1,1 +1,1 @@
-export const ciTest = {a:1}
+export const ciTest = { a: 1 };
