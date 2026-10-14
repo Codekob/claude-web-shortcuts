@@ -1,5 +1,7 @@
 # Claude Web Shortcuts
 
+[![CI](https://github.com/Codekob/claude-web-shortcuts/actions/workflows/ci.yml/badge.svg)](https://github.com/Codekob/claude-web-shortcuts/actions/workflows/ci.yml)
+
 Chrome extension (Manifest V3) that adds configurable keyboard shortcuts to [claude.ai](https://claude.ai),
 so you can switch model and effort without reaching for the mouse.
 
@@ -98,14 +100,15 @@ Tests run in Vitest with jsdom, at three levels:
 
 ## Development
 
-| Script              | Purpose                      |
-| ------------------- | ---------------------------- |
-| `npm run build`     | Typecheck + production build |
-| `npm run dev`       | Watch build with HMR         |
-| `npm test`          | Unit and scenario tests      |
-| `npm run lint`      | ESLint                       |
-| `npm run typecheck` | `tsc --noEmit`               |
-| `npm run format`    | Prettier                     |
+| Script                 | Purpose                      |
+| ---------------------- | ---------------------------- |
+| `npm run build`        | Typecheck + production build |
+| `npm run dev`          | Watch build with HMR         |
+| `npm test`             | Unit and scenario tests      |
+| `npm run lint`         | ESLint                       |
+| `npm run typecheck`    | `tsc --noEmit`               |
+| `npm run format`       | Prettier                     |
+| `npm run format:check` | Prettier, without writing    |
 
 Built with TypeScript, Vite and [`@crxjs/vite-plugin`](https://github.com/crxjs/chrome-extension-tools);
 the options page uses Preact.
