@@ -17,6 +17,7 @@ npx vitest run -t "selects a model"          # single test by name
 npm run lint                  # eslint .
 npm run typecheck             # tsc --noEmit
 npm run format                # prettier --write .
+npm run format:check          # prettier --check . (what CI runs)
 ```
 
 `@/` is aliased to `src/` (vite, vitest and tsconfig).
