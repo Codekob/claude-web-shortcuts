@@ -231,13 +231,54 @@ describe('effort levels', () => {
     await expect(run(setEffort('high'))).rejects.toThrow('This model has no effort setting');
   });
 
-  // Known gap: the Effort row is found by its visible text (EFFORT_SUBMENU_LABEL), so a rename
-  // or a non-English UI breaks every effort command. Fixing it means probing submenus for
-  // [data-effort-id] items, which needs checking against the real page. Flip to `it` once fixed.
-  it.fails('finds the Effort row when it is renamed or translated', async () => {
-    const p = mount({ effortRowLabel: 'Aufwand' });
+  it('finds the Effort row when it is renamed', async () => {
+    const p = mount({ effortRowLabel: 'Thinking' });
     await run(setEffort('high'));
     expect(p.state.effort).toBe('high');
+  });
+});
+
+describe('a translated UI', () => {
+  const german = {
+    effortRowLabel: 'Aufwand',
+    efforts: SNAPSHOT_EFFORTS.map((e, i) => ({
+      ...e,
+      label: ['Niedrig', 'Mittel', 'Hoch', 'Sehr hoch', 'Maximal'][i]!,
+    })),
+    triggerLabel: (m: FakeModel, e: { label: string } | null) =>
+      `Modell: ${m.name}${e ? ` ${e.label}` : ''}`,
+  };
+
+  it('sets and cycles effort', async () => {
+    const p = mount(german);
+    await run(setEffort('high'));
+    expect(p.state.effort).toBe('high');
+    await run(cycleEffort);
+    expect(p.state.effort).toBe('xhigh');
+  });
+
+  it('applies the preferred level when switching', async () => {
+    const p = mount(german);
+    await run(switchToFamily('opus'), { effortOnSwitch: 'high' });
+    expect(p.state).toEqual({ model: opus.id, effort: 'high' });
+  });
+
+  it('skips the picker once translated levels are known', async () => {
+    const p = mount(german);
+    await run(setEffort('high'));
+    const notify = await run(setEffort('high'));
+    expect(p.log.filter((entry) => entry === 'open')).toHaveLength(1);
+    expect(notify).toHaveBeenCalledWith('Haiku 5.5 · Hoch');
+  });
+
+  it('does not open "More models" for a model without effort', async () => {
+    const p = mount({
+      ...german,
+      models: [model(haiku.id, haiku.name, { efforts: null })],
+      selected: { model: haiku.id, effort: null },
+    });
+    await expect(run(setEffort('high'))).rejects.toThrow('This model has no effort setting');
+    expect(p.log).toEqual(['open', 'close']);
   });
 });
 

@@ -1,3 +1,4 @@
+import { EFFORT_LEVELS } from '@/shared/settings';
 import { waitFor } from '../dom/waitFor';
 import { press, pressKey } from '../dom/simulate';
 import {
@@ -9,7 +10,7 @@ import {
   parseTriggerLabel,
   type SelectorState,
 } from './parse';
-import { EFFORT_SUBMENU_LABEL, MODEL_TRIGGER_LABEL_PREFIX, SELECTORS } from './selectors';
+import { EFFORT_SUBMENU_LABEL, SELECTORS } from './selectors';
 
 export interface ModelOption {
   id: string;
@@ -39,14 +40,29 @@ const CONFIRM_TIMEOUT_MS = 500;
 
 /** Models seen the last time the picker was opened, for shortcuts that can skip opening it. */
 let lastSeenModels: ModelOption[] = [];
+/** Effort levels seen the last time the Effort submenu was opened, with their shown labels. */
+let lastSeenEfforts: EffortOption[] = [];
+/** Label of the row that last opened the effort levels, in claude.ai's UI language. */
+let lastEffortRowLabel: string | null = null;
 
 export function knownModels(): readonly ModelOption[] {
   return lastSeenModels;
 }
 
-/** Forgets the models seen so far, as on a fresh page load (used by tests). */
+/** Forgets the models and efforts seen so far, as on a fresh page load (used by tests). */
 export function resetKnownModels(): void {
   lastSeenModels = [];
+  lastSeenEfforts = [];
+  lastEffortRowLabel = null;
+}
+
+/**
+ * The `data-effort-id` of an effort label as claude.ai shows it, e.g. "Medium" → "medium".
+ * Translated labels are known once the Effort submenu has been opened; null until then.
+ */
+export function effortIdFromLabel(label: string): string | null {
+  const known = [...lastSeenEfforts, ...EFFORT_LEVELS];
+  return known.find((effort) => sameLabel(effort.label, label))?.id ?? null;
 }
 
 export function findModelTrigger(): HTMLElement | null {
@@ -177,7 +193,7 @@ export class ModelMenu {
       timeout: OPEN_TIMEOUT_MS,
       description: `selection of ${name}`,
     });
-    if (checked() || !labelBefore?.startsWith(MODEL_TRIGGER_LABEL_PREFIX)) return;
+    if (checked() || !labelBefore || !parseTriggerLabel(labelBefore)) return;
     await waitFor(() => this.trigger.getAttribute('aria-label') !== labelBefore, {
       timeout: CONFIRM_TIMEOUT_MS,
       description: `selection of ${name}`,
@@ -186,10 +202,20 @@ export class ModelMenu {
     });
   }
 
-  /** Opens the Effort submenu, or returns null if the current model has none. */
+  /**
+   * Opens the Effort submenu, or returns null if the current model has none. Candidate rows are
+   * tried in turn until one opens a menu with effort levels.
+   */
   private async openEffortSubmenu(): Promise<HTMLElement | null> {
-    const row = findEffortRow(await this.open());
-    return row ? openMenuFrom(row, 'effort submenu') : null;
+    for (const row of effortRowCandidates(await this.open())) {
+      const submenu = await openMenuFrom(row, 'effort submenu');
+      const items = effortItems(submenu);
+      if (items.length === 0) continue;
+      lastEffortRowLabel = leafText(row);
+      lastSeenEfforts = items.map(toEffortOption);
+      return submenu;
+    }
+    return null;
   }
 }
 
@@ -215,11 +241,30 @@ function toEffortOption(item: HTMLElement): EffortOption {
   };
 }
 
-/** The picker row that opens the Effort submenu, if the current model has one. */
+/**
+ * Submenu rows that may open the effort levels, most likely first. The row's title is
+ * translated in other languages, so besides the English or last seen title it is recognised by
+ * showing the current level next to the title ("Effort  Medium"), unlike "More models".
+ */
+function effortRowCandidates(menu: HTMLElement): HTMLElement[] {
+  const rows = [...menu.querySelectorAll<HTMLElement>(SELECTORS.submenuTrigger)];
+  const titles = [lastEffortRowLabel, EFFORT_SUBMENU_LABEL].filter((t): t is string => !!t);
+  const named = rows.filter((row) => titles.some((title) => sameLabel(leafText(row), title)));
+  const withValue = rows.filter((row) => !named.includes(row) && leafTexts(row).length > 1);
+  return [...named, ...withValue];
+}
+
+/**
+ * The picker row that opens the Effort submenu, if the current model has one. Without opening
+ * submenus this is a best guess; an open submenu with effort levels settles it.
+ */
 export function findEffortRow(menu: HTMLElement): HTMLElement | undefined {
-  return [...menu.querySelectorAll<HTMLElement>(SELECTORS.submenuTrigger)].find((el) =>
-    sameLabel(leafText(el), EFFORT_SUBMENU_LABEL),
-  );
+  const rows = effortRowCandidates(menu);
+  const open = rows.find((row) => {
+    const submenu = controlledMenu(row);
+    return submenu !== null && effortItems(submenu).length > 0;
+  });
+  return open ?? rows[0];
 }
 
 export function effortItems(submenu: HTMLElement): HTMLElement[] {

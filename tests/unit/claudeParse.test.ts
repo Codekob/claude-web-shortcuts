@@ -38,6 +38,18 @@ describe('parseTriggerLabel', () => {
     });
   });
 
+  it('accepts translated prefixes', () => {
+    expect(parseTriggerLabel('Modell: Haiku 5.5 Mittel')).toEqual({
+      modelName: 'Haiku 5.5',
+      effort: 'Mittel',
+    });
+    expect(parseTriggerLabel('Modèle : Opus 5.5')).toEqual({ modelName: 'Opus 5.5', effort: null });
+    expect(parseTriggerLabel('モデル：Opus 5.5 高')).toEqual({
+      modelName: 'Opus 5.5',
+      effort: '高',
+    });
+  });
+
   it('rejects unrelated labels', () => {
     expect(parseTriggerLabel('Send message')).toBeNull();
   });

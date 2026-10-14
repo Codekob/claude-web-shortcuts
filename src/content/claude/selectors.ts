@@ -22,11 +22,14 @@ export const SELECTORS = {
   chatInput: '[data-testid="chat-input"]',
 } as const;
 
-/** Visible label of the submenu row that holds the effort levels. */
+/**
+ * Visible label of the submenu row that holds the effort levels in the English UI. Other
+ * languages translate it, so the row is also recognised by its structure (see findEffortRow).
+ */
 export const EFFORT_SUBMENU_LABEL = 'Effort';
 
-/** Prefix of the trigger's aria-label. */
-export const MODEL_TRIGGER_LABEL_PREFIX = 'Model:';
+/** Prefix of the trigger's aria-label: "Model:" in English, "Modell:", "Modèle :", … elsewhere. */
+export const MODEL_TRIGGER_LABEL_PREFIX = /^[^:：]{1,30}[:：]\s*/;
 
 /** Model id format: claude-<family>[-<version parts>][-<date>]. */
 export const MODEL_ID_PATTERN = /^claude-([a-z]+)(?:-(.+))?$/;

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { latestOfFamily, readSelectorState, type ModelOption } from '@/content/claude';
-import { ModelMenu } from '@/content/claude/modelMenu';
+import { ModelMenu, resetKnownModels } from '@/content/claude/modelMenu';
 import fixture from '../fixtures/model-menu.html?raw';
 
 function trigger(): HTMLElement {
@@ -61,6 +61,32 @@ describe('ModelMenu against the claude.ai snapshot', () => {
   it('reports no efforts when the model has no Effort row', async () => {
     document.querySelector('[aria-controls="_r_effort_"]')!.remove();
     expect(await new ModelMenu(trigger()).listEfforts()).toEqual([]);
+  });
+});
+
+describe('ModelMenu against a translated snapshot', () => {
+  beforeEach(() => {
+    resetKnownModels();
+    document.body.innerHTML = fixture
+      .replace('aria-label="Model:', 'aria-label="Modell:')
+      .replace('<span>Effort</span>', '<span>Aufwand</span>')
+      .replace('<span>More models</span>', '<span>Weitere Modelle</span>');
+  });
+
+  it('reads the current state from the trigger label', () => {
+    expect(readSelectorState()).toEqual({ modelName: 'Haiku 5.5', effort: 'Medium' });
+  });
+
+  it('finds the Effort row by its structure', async () => {
+    const menu = new ModelMenu(trigger());
+    expect(await menu.currentEffortLabel()).toBe('Medium');
+    expect((await menu.listEfforts()).map((e) => e.id)).toEqual([
+      'low',
+      'medium',
+      'high',
+      'xhigh',
+      'max',
+    ]);
   });
 });
 
