@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Codekob/claude-web-shortcuts/actions/workflows/ci.yml/badge.svg)](https://github.com/Codekob/claude-web-shortcuts/actions/workflows/ci.yml)
 
-Chrome extension (Manifest V3) that adds configurable keyboard shortcuts to [claude.ai](https://claude.ai),
+Chrome extension (Manifest V3) that adds **configurable** keyboard shortcuts to [claude.ai](https://claude.ai),
 so you can switch model and effort without reaching for the mouse.
 
 > Unofficial project, not affiliated with or endorsed by Anthropic.
@@ -22,13 +22,31 @@ unbound in the options page, which warns about conflicting bindings.
 
 ## Install
 
+### Chrome Web Store
+
+Coming soon. <!-- TODO: link the store listing once it is published -->
+
+### From a release
+
+1. Download `claude-web-shortcuts-vX.Y.Z.zip` from the
+   [latest release](https://github.com/Codekob/claude-web-shortcuts/releases/latest) and unzip it
+   into a folder you'll keep (Chrome loads the extension from there, so don't delete it).
+2. Open `chrome://extensions` and enable **Developer mode** (top right).
+3. Click **Load unpacked** and pick the unzipped folder.
+
+To update, replace the folder's contents with a newer release and click the reload icon on the
+extension's card in `chrome://extensions`.
+
+### From source
+
 ```bash
 npm install
 npm run build        # outputs dist/
 ```
 
-Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and pick `dist/`.
-Click the extension's toolbar icon to open the shortcut editor.
+Then load `dist/` with **Load unpacked** as above.
+
+Once installed, click the extension's toolbar icon to open the shortcut editor.
 
 ## How it works
 
