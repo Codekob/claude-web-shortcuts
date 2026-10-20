@@ -1,4 +1,5 @@
 import type { CommandId } from '@/shared/commands';
+import { newChat, newIncognitoChat } from './handlers/chat';
 import { copyPickerSnapshot } from './handlers/diagnostics';
 import { cycleEffort, setEffort } from './handlers/effort';
 import { cycleModel, switchToFamily } from './handlers/model';
@@ -16,5 +17,7 @@ export const COMMAND_HANDLERS: Record<CommandId, CommandHandler> = {
   'effort.setHigh': setEffort('high'),
   'effort.setExtra': setEffort('xhigh'),
   'effort.setMax': setEffort('max'),
+  'chat.new': newChat,
+  'chat.newIncognito': newIncognitoChat,
   'debug.copyPickerSnapshot': copyPickerSnapshot,
 };

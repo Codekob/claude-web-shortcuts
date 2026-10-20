@@ -20,6 +20,8 @@ export const SELECTORS = {
   portal: '[data-base-ui-portal]',
   /** The message composer. */
   chatInput: '[data-testid="chat-input"]',
+  /** The sidebar's "New" row; claude.ai advertises its own Ctrl+Shift+O shortcut on it. */
+  newChatLink: 'a[href="/new"][aria-keyshortcuts]',
 } as const;
 
 /**
@@ -33,3 +35,9 @@ export const MODEL_TRIGGER_LABEL_PREFIX = /^[^:：]{1,30}[:：]\s*/;
 
 /** Model id format: claude-<family>[-<version parts>][-<date>]. */
 export const MODEL_ID_PATTERN = /^claude-([a-z]+)(?:-(.+))?$/;
+
+/** Path of a new, empty chat. */
+export const NEW_CHAT_PATH = '/new';
+
+/** Query parameter that opens the new chat in incognito mode: /new?incognito. */
+export const INCOGNITO_PARAM = 'incognito';
