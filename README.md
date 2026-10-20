@@ -15,10 +15,15 @@ so you can switch model and effort without reaching for the mouse.
 | `Alt+0`  | Cycle model                                               |
 | `Alt+9`  | Cycle effort (Low → Medium → High → Extra; never Max)     |
 | —        | Set effort Low / Medium / High / Extra / Max (assignable) |
+| —        | New chat / New incognito chat (assignable)                |
 
 Model switches also set the effort (default **Medium**; configurable, or "Keep current"). If the
 new model doesn't offer that level, its effort is left as is. Every shortcut can be rebound or
 unbound in the options page, which warns about conflicting bindings.
+
+New chat and New incognito chat are rebindable versions of claude.ai's own `Ctrl+Shift+O` and
+`Ctrl+Shift+I`, which clash with Chrome's bookmark manager and DevTools. New chat clicks the
+sidebar's "New" link (no page reload); incognito loads `claude.ai/new?incognito`.
 
 ## Install
 

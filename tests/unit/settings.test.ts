@@ -46,6 +46,12 @@ describe('normalizeSettings', () => {
     expect(settings.showToast).toBe(false);
     expect(settings.debugMode).toBe(true);
   });
+
+  it('leaves commands added after the settings were stored unbound', () => {
+    const settings = normalizeSettings({ keybindings: { 'model.cycle': 'Ctrl+KeyM' } });
+    expect(settings.keybindings['chat.new']).toBeNull();
+    expect(settings.keybindings['chat.newIncognito']).toBeNull();
+  });
 });
 
 describe('normalizeSettings effort', () => {

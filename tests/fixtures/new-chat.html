@@ -1,0 +1,31 @@
+<!--
+  Trimmed from docs/claude_ai_dom.html (classes/styles/icons removed): the sidebar's "New" row
+  and the header's incognito toggle on /new.
+-->
+<div id="frame-peek-popover" data-testid="sidebar">
+  <div>
+    <a href="/new">
+      <div data-cds="ProductLogo" data-app-wordmark="claude"></div>
+    </a>
+  </div>
+  <div>
+    <a
+      href="/new"
+      draggable="false"
+      data-row=""
+      data-roving-item=""
+      data-row-main-button=""
+      aria-keyshortcuts="Control+Shift+o"
+      ><span>New</span
+      ><span aria-hidden="true" data-cds="Shortcut" data-variant="text"
+        ><kbd>Ctrl</kbd><span>+</span><kbd>Shift</kbd><span>+</span><kbd>O</kbd></span
+      ></a
+    >
+  </div>
+</div>
+<header>
+  <div id="dframe-header-actions-slot">
+    <button type="button" data-cds="Button" aria-label="Use incognito"></button>
+  </div>
+</header>
+<div data-testid="chat-input" contenteditable="true"></div>

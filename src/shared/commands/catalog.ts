@@ -79,6 +79,20 @@ export const COMMANDS = [
     defaultKey: null,
   },
   {
+    id: 'chat.new',
+    title: 'New chat',
+    category: 'Chat',
+    description: "Starts a new chat, like claude.ai's own Ctrl+Shift+O.",
+    defaultKey: null,
+  },
+  {
+    id: 'chat.newIncognito',
+    title: 'New incognito chat',
+    category: 'Chat',
+    description: "Starts a new incognito chat, like claude.ai's own Ctrl+Shift+I.",
+    defaultKey: null,
+  },
+  {
     id: 'debug.copyPickerSnapshot',
     title: 'Copy model picker snapshot',
     category: 'Diagnostics',
